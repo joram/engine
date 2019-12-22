@@ -34,7 +34,7 @@ func CreateInitialGame(req *pb.CreateRequest) (*pb.Game, []*pb.GameFrame, error)
 	if err != nil {
 		return nil, nil, err
 	}
-	food, err := generateFood(req, snakes)
+	food, err := generateFood(snakes)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -142,15 +142,27 @@ func getSnakes(req *pb.CreateRequest) ([]*pb.Snake, error) {
 	return snakes, nil
 }
 
-func generateFood(req *pb.CreateRequest, snakes []*pb.Snake) ([]*pb.Point, error) {
-	food := []*pb.Point{}
-
-	for i := int32(0); i < req.Food; i++ {
-		p := getUnoccupiedPoint(req.Width, req.Height, food, snakes)
-		if p != nil {
-			food = append(food, p)
-		}
+func randomNeighbour(coord *pb.Point) *pb.Point {
+	directions := []Coords{
+		{1,0},
+		{-1,0},
+		{0,1},
+		{0,-1},
 	}
+	i := rand.Int() % len(directions)
 
+	p := pb.Point{}
+	p.X = coord.X + directions[i].X
+	p.Y = coord.Y + directions[i].Y
+	return &p
+}
+
+func generateFood(snakes []*pb.Snake) ([]*pb.Point, error) {
+	var food []*pb.Point
+	for _, snake := range snakes {
+		head := snake.Body[0]
+		p := randomNeighbour(head)
+		food = append(food, p)
+	}
 	return food, nil
 }
